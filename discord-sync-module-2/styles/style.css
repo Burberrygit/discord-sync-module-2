@@ -1,0 +1,66 @@
+.discord-sync-module form {
+  padding: 20px;
+  font-family: "Segoe UI", Roboto, sans-serif;
+  color: #e0e0e0;
+  background: #2f3136;
+  border-radius: 12px;
+}
+
+.discord-sync-module .form-group {
+  margin-bottom: 20px;
+}
+
+.discord-sync-module .form-group label {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 6px;
+  color: #ffffff;
+}
+
+.discord-sync-module .form-group input,
+.discord-sync-module .form-group select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: #40444b;
+  color: #fff;
+  font-size: 14px;
+  transition: all 0.2s ease-in-out;
+}
+
+.discord-sync-module .form-group input:focus,
+.discord-sync-module .form-group select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #7289da;
+}
+
+.discord-sync-module .buttons {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.discord-sync-module button {
+  background: #7289da;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+}
+
+.discord-sync-module button:hover {
+  background: #5b6eae;
+}
+
+.discord-sync-module button.cancel {
+  background: #4f545c;
+}
+
+.discord-sync-module button.cancel:hover {
+  background: #3d4147;
+}
