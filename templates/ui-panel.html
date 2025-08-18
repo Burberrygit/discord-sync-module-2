@@ -1,0 +1,68 @@
+<!-- modules/discord-sync-module-2/templates/ui-panel.html -->
+<style>
+  /* Make the text (and icons) inside buttons black for visibility */
+  .discord-sync-form .sheet-footer button { color: #000 !important; }
+  .discord-sync-form .sheet-footer button i { color: inherit !important; }
+</style>
+
+<form class="discord-sync-form">
+  <header class="form-header">
+    <h2><i class="fas fa-link"></i> Link Discord & Foundry</h2>
+    <p class="notes">
+      Paste your Discord link token and choose a character to sync. The Guild ID is set by the GM for this world.
+    </p>
+  </header>
+
+  <!-- Token -->
+  <div class="form-group">
+    <label for="discord-token">Discord Link Token</label>
+    <div class="form-fields">
+      <input type="text" name="token" id="discord-token" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+    </div>
+    <p class="notes">
+      Run <code>/linkfoundry</code> in Discord to generate a token, then paste it here.
+    </p>
+  </div>
+
+  <!-- Guild ID (read-only, set by GM as a world setting) -->
+  <div class="form-group">
+    <label>Discord Server (Guild) ID</label>
+    <div class="form-fields">
+      <input type="text" value="{{guildId}}" disabled />
+    </div>
+    <p class="notes">
+      {{#if guildId}}
+        This is configured by a GM in <em>Module Settings → Discord Sync Module 2 → Discord Guild ID</em>.
+      {{else}}
+        <strong>Not set yet.</strong>
+        {{#if isGM}}
+          Please set it in <em>Configure Settings → Module Settings → Discord Sync Module 2</em>.
+        {{else}}
+          Ask a GM to set it in Module Settings.
+        {{/if}}
+      {{/if}}
+    </p>
+  </div>
+
+  <!-- Character -->
+  <div class="form-group">
+    <label for="discord-actor">Character</label>
+    <div class="form-fields">
+      <select name="actor" id="discord-actor">
+        {{#each characters}}
+          <option value="{{this.id}}" {{#if (eq ../selectedActor this.id)}}selected{{/if}}>{{this.name}}</option>
+        {{/each}}
+      </select>
+    </div>
+    <p class="notes">Pick the actor you want linked to your Discord account.</p>
+  </div>
+
+  <!-- Actions -->
+  <footer class="sheet-footer flexrow" style="gap:.5rem;">
+    <button type="submit" class="continue"><i class="fas fa-plug"></i> Link & Sync</button>
+    <button type="button" class="cancel"><i class="fas fa-times"></i> Cancel</button>
+    <button type="button" name="sync-from-discord"><i class="fas fa-sync"></i> Sync from Discord</button>
+  </footer>
+</form>
+
+
