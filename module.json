@@ -2,7 +2,7 @@
   "id": "discord-sync-module-2",
   "title": "Discord Sync Module 2",
   "description": "Link a Foundry actor to a Discord bot, sync inventory and GP, and receive updates.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
   "compatibility": { "minimum": "13", "verified": "13" },
   "authors": [{ "name": "Mr.Burberry", "url": "https://burberrymarket.dev" }],
