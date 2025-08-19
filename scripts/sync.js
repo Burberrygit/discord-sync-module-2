@@ -283,6 +283,24 @@ if (window.__DISCORD_SYNC_2_LOADED__) {
       const url = `${POLL_ENDPOINT}?token=${encodeURIComponent(token)}&guild_id=${encodeURIComponent(guildIdWorld)}&peek=1`;
       const resp = await fetch(url);
 
+      // NEW: handle 401 (expired token / sliding TTL)
+      if (resp.status === 401 && !tokenExpiredShown) {
+        tokenExpiredShown = true;
+        let msg = "Your sync token has expired. Please re-link with /linkfoundry in Discord.";
+        try {
+          const j = await resp.json();
+          if (j?.status) msg = `Discord Sync: ${j.status}. Please re-link with /linkfoundry.`;
+        } catch {}
+        new Dialog({
+          title: "⚠️ Discord Sync Token",
+          content: `<p>${msg}</p>`,
+          buttons: { ok: { icon: "<i class='fas fa-check'></i>", label: "OK" } }
+        }).render(true);
+        // small backoff to avoid log spam
+        await new Promise(r => setTimeout(r, 15000));
+        return;
+      }
+
       if (resp.status === 400) {
         const result = await resp.json().catch(() => ({}));
         if (result.status === "invalid token" && !tokenExpiredShown) {
@@ -511,7 +529,8 @@ if (window.__DISCORD_SYNC_2_LOADED__) {
           const document = await compendium.getDocument(entry._id);
           docObj = document.toObject();
           docObj.system = docObj.system || {};
-          docObj.system.quantity = (Number(docObj.system.quantity) || 0) + qty;
+          // FIX: set exact requested quantity on first import (avoid compendium's base 1 + purchased qty)
+          docObj.system.quantity = Number(qty) || 1;
           console.log(`✅ Imported ${name} from compendium.`);
         }
       }
@@ -591,6 +610,3 @@ if (window.__DISCORD_SYNC_2_LOADED__) {
   window.syncToDiscord2 = syncToDiscord2;
 
 }
-
-
-
