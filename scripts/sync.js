@@ -35,7 +35,7 @@ if (window.__DISCORD_SYNC_2_LOADED__) {
 
     async getData() {
       const characters = game.actors
-        .filter(a => a.type === "character" && !a.folder)
+        .filter(a => a.type === "character")
         .map(a => ({ id: a.id, name: a.name }))
         .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -53,6 +53,7 @@ if (window.__DISCORD_SYNC_2_LOADED__) {
         isGM: game.user.isGM
       };
     }
+
 
     activateListeners(html) {
       super.activateListeners(html);
@@ -209,15 +210,19 @@ if (window.__DISCORD_SYNC_2_LOADED__) {
       onChange: (v) => console.log("Discord Sync 2 | adminBaseOverride changed to:", v)
     });
 
-    const override = (game.settings.get(NS, "adminBaseOverride") || "").trim();
-    if (override) {
-      BASE_URL = override.replace(/\/+$/, "");
-    } else {
-      BASE_URL = isLocal ? "http://127.0.0.1:8080" : `${window.location.origin}/discord-sync`;
-    }
-    SYNC_ENDPOINT = `${BASE_URL}/sync`;
-    POLL_ENDPOINT = `${BASE_URL}/pending-updates`;
-    ACK_ENDPOINT  = `${BASE_URL}/ack-updates`;
+     // Prefer admin override if set; otherwise default to our public reverse-proxied base.
+     // No trailing slash to avoid double slashes in endpoint URLs.
+      const override = (game.settings.get(NS, "adminBaseOverride") || "").trim();
+      const DEFAULT_PUBLIC_BASE = "https://www.fvtt.life/discord-sync";
+      const normalizeBase = (u) => String(u || "").replace(/\/+$/, "");
+
+      // Assign to the existing variables (do NOT redeclare with const/let if already declared above)
+      BASE_URL = normalizeBase(override || DEFAULT_PUBLIC_BASE);
+      SYNC_ENDPOINT = `${BASE_URL}/sync`;
+      POLL_ENDPOINT = `${BASE_URL}/pending-updates`;
+      ACK_ENDPOINT  = `${BASE_URL}/ack-updates`;
+
+
 
     game.settings.registerMenu(NS, "linkMenu", {
       name: "Link with Discord",
