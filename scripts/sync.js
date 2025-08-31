@@ -13,7 +13,12 @@ if (window.__DISCORD_SYNC_2_LOADED__) {
   let POLL_ENDPOINT = null;
   let ACK_ENDPOINT = null;
 
-  const POLL_INTERVAL = 10000; // 10s
+  // UPDATED: poll every ~4s and abort if a request stalls >4s
+  const POLL_INTERVAL = 4000;        // was 10000 (10s)
+  const POLL_TIMEOUT_MS = 4000;      // abort fetch if it runs longer than this
+  const RETRY_MIN_MS = 500;          // jittered retry min
+  const RETRY_MAX_MS = 1500;         // jittered retry max
+
   let tokenExpiredShown = false;
   let pollInFlight = false;
 
@@ -137,7 +142,7 @@ if (window.__DISCORD_SYNC_2_LOADED__) {
 
         const resp = await fetch(SYNC_ENDPOINT, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
           body: JSON.stringify(payload)
         });
 
@@ -202,7 +207,7 @@ if (window.__DISCORD_SYNC_2_LOADED__) {
 
     game.settings.register(NS, "adminBaseOverride", {
       name: "Admin Base URL Override (optional)",
-      hint: "Example: https://burberrymarket.dev (leave blank to use the default /discord-sync path on this Foundry origin).",
+      hint: "Example: https://burberrymarket.dev (leave blank to use the default /discordsync path).",
       scope: "world",
       config: true,
       type: String,
@@ -213,7 +218,7 @@ if (window.__DISCORD_SYNC_2_LOADED__) {
      // Prefer admin override if set; otherwise default to our public reverse-proxied base.
      // No trailing slash to avoid double slashes in endpoint URLs.
       const override = (game.settings.get(NS, "adminBaseOverride") || "").trim();
-      const DEFAULT_PUBLIC_BASE = "https://www.fvtt.life/discord-sync";
+      const DEFAULT_PUBLIC_BASE = "https://burberrymarket.dev/discordsync";   // UPDATED default
       const normalizeBase = (u) => String(u || "").replace(/\/+$/, "");
 
       // Assign to the existing variables (do NOT redeclare with const/let if already declared above)
@@ -265,6 +270,10 @@ if (window.__DISCORD_SYNC_2_LOADED__) {
     }
   });
 
+  function _jitter() {
+    return Math.floor(Math.random() * (RETRY_MAX_MS - RETRY_MIN_MS + 1)) + RETRY_MIN_MS;
+  }
+
   async function pollForUpdates2(manual = false) {
     const token        = game.settings.get(NS, "discordToken");
     const actorId      = game.settings.get(NS, "linkedActorId");
@@ -283,10 +292,24 @@ if (window.__DISCORD_SYNC_2_LOADED__) {
     pollInFlight = true;
     console.log("Discord Sync 2 | Polling (peek)", { token: token.slice(0, 8) + "…", actorId, guildIdWorld, POLL_ENDPOINT });
 
+    // --- NEW: abort controller for stalled polls
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(new Error("poll-timeout")), POLL_TIMEOUT_MS);
+
     try {
-      // PEEK: non-destructive fetch
-      const url = `${POLL_ENDPOINT}?token=${encodeURIComponent(token)}&guild_id=${encodeURIComponent(guildIdWorld)}&peek=1`;
-      const resp = await fetch(url);
+      // Normal delivery (no peek). Explicit ACKs will clear updates immediately.
+      const url = `${POLL_ENDPOINT}?token=${encodeURIComponent(token)}&guild_id=${encodeURIComponent(guildIdWorld)}`;
+      const resp = await fetch(url, {
+        method: "GET",
+        headers: { "Cache-Control": "no-store" },
+        signal: controller.signal
+      });
+
+      // If backend returns 204: no updates, treat as success and exit fast
+      if (resp.status === 204) {
+        if (manual) ui.notifications.info("No pending updates from Discord.");
+        return;
+      }
 
       // NEW: handle 401 (expired token / sliding TTL)
       if (resp.status === 401 && !tokenExpiredShown) {
@@ -365,7 +388,7 @@ if (window.__DISCORD_SYNC_2_LOADED__) {
         try {
           const ackResp = await fetch(ACK_ENDPOINT, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
             body: JSON.stringify({ token, guild_id: String(guildIdWorld), ids: appliedIds })
           });
           const ackJson = await ackResp.json().catch(() => ({}));
@@ -388,9 +411,21 @@ if (window.__DISCORD_SYNC_2_LOADED__) {
         ui.notifications.info("No applicable updates.");
       }
     } catch (err) {
-      console.warn("Discord Sync 2 | Poll failed:", err);
-      if (manual) ui.notifications.error("Polling failed. Check console for details.");
+      // Timeout or network error → jittered quick retry (without spamming)
+      console.warn("Discord Sync 2 | Poll failed:", err?.message || err);
+      if (err?.name === "AbortError" || /poll-timeout/.test(String(err?.message || "")) || err?.code === "ETIMEDOUT") {
+        const delay = _jitter();
+        console.debug(`Discord Sync 2 | Poll timed out; retrying in ${delay}ms`);
+        // allow this retry to run even if the interval is ticking
+        setTimeout(() => {
+          // ensure a fresh attempt can run
+          pollForUpdates2(false);
+        }, delay);
+      } else if (manual) {
+        ui.notifications.error("Polling failed. Check console for details.");
+      }
     } finally {
+      clearTimeout(timeoutId);
       pollInFlight = false;
     }
   }
@@ -601,7 +636,7 @@ if (window.__DISCORD_SYNC_2_LOADED__) {
     try {
       await fetch(SYNC_ENDPOINT, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
         body: JSON.stringify(payload)
       });
     } catch (err) {
