@@ -1,20 +1,31 @@
 {
   "id": "discord-sync-module-2",
+  "name": "discord-sync-module-2",
   "title": "Discord Sync Module 2",
-  "description": "Link a Foundry actor to a Discord bot, sync inventory and GP, and receive updates.",
-  "version": "1.0.7",
+  "description": "Links a Foundry world to a Discord bot; registers settings and a toolbar button.",
   "type": "module",
-  "compatibility": { "minimum": "11", "verified": "13" },
-  "authors": [{ "name": "Mr.Burberry", "url": "https://burberrymarket.dev" }],
+  "version": "1.0.8",
+  "compatibility": { "minimum": "10", "verified": "13" },
+
+  "relationships": {
+    "systems": [
+      { "id": "dnd5e" },
+      { "id": "pf2e" },
+      { "id": "pf1" }
+    ]
+  },
+
+  "authors": [
+    { "name": "Mr.Burberry", "url": "https://burberrymarket.dev" }
+  ],
+
   "esmodules": ["scripts/sync.js"],
   "packs": [],
   "url": "https://github.com/Burberrygit/discord-sync-module-2",
   "readme": "https://raw.githubusercontent.com/Burberrygit/discord-sync-module-2/main/README.md",
   "changelog": "https://raw.githubusercontent.com/Burberrygit/discord-sync-module-2/main/CHANGELOG.md",
-  "license": "https://raw.githubusercontent.com/Burberrygit/discord-sync-module-2/main/LICENSE",
-  "manifest": "https://raw.githubusercontent.com/Burberrygit/discord-sync-module-2/main/module.json",
-  "download": "https://github.com/Burberrygit/discord-sync-module-2/releases/download/v1.0.7/discord-sync-module-2-v1.0.7.zip",
-  "socket": false
+  "license": "https://raw.githubusercontent.com/Burberrygit/discord-sync-module-2/main/LICENSE"
 }
+
 
 
