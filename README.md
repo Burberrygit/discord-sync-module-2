@@ -1,4 +1,4 @@
-# Discord Sync Module 2
+# Discord Sync Module 2 for The Golden Anvil Discord Bot. : https://discord.com/oauth2/authorize?client_id=1399873298463985664&permissions=2147609600&integration_type=0&scope=bot+applications.commands
 
 This project links your Discord server with Foundry Virtual Tabletop so your players’ gold and inventory always stay in sync.  
 Players can buy, sell, gamble, or transfer gold right in Discord, and those changes automatically appear on their Foundry character sheets. Updates made in Foundry also sync back to Discord.
