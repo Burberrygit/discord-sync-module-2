@@ -16,7 +16,6 @@ Players can buy, sell, gamble, or transfer gold right in Discord, and those chan
 2. They paste that token into the module’s link window in Foundry. The DM just needs to set the **Guild ID** once in the module settings.
 3. From then on, whenever a player buys, sells, or gambles in Discord, the bot queues updates. Foundry automatically pulls those updates and applies them to the correct character.
 
-No server setup or `.env` files needed on your end — that’s all handled already.
 
 ---
 
