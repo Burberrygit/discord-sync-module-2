@@ -421,6 +421,33 @@ if (window.__DISCORD_SYNC_2_LOADED__[NS]) {
     return Adapters[sys] || Adapters.dnd5e;
   }
 
+  // === Physical / tradable items per system ===
+  function getPhysicalTypeSet() {
+    const sys = (getActiveSystem() || "").toLowerCase();
+    switch (sys) {
+      case "pf2e":
+        return new Set(["weapon","armor","shield","equipment","consumable","backpack","treasure","ammunition","kit"]);
+      case "pf1":
+        return new Set(["weapon","armor","shield","equipment","consumable","loot","container","tool","ammo"]);
+      case "dnd5e":
+      default:
+        return new Set(["weapon","armor","shield","equipment","consumable","tool","loot","container","backpack","ammo"]);
+    }
+  }
+
+  function buildInventoryForPayload(actor) {
+    const keep = getPhysicalTypeSet();
+    const adapter = A();
+    return actor.items
+      .filter(i => keep.has(String(i.type || "").toLowerCase()))
+      .sort((a, b) => (a.type === b.type ? a.name.localeCompare(b.name) : a.type.localeCompare(b.type)))
+      .map(i => ({
+        name: i.name,
+        qty: adapter.getQty(i),
+        type: i.type
+      }));
+  }
+
   // ------- Link dialog -------
   class LinkAccountForm extends FormApplication {
     static get defaultOptions() {
@@ -524,25 +551,13 @@ if (window.__DISCORD_SYNC_2_LOADED__[NS]) {
         if (!actor) return ui.notifications.warn("Selected character not found.");
 
         const adapter = A();
-        const excludedTypes = ["class", "race", "feat", "background", "subclass", "feature", "spell"];
 
         const payload = {
           token,
           guild_id: String(guildIdWorld),
           character: actor.name,
           gold: adapter.readGP(actor),
-          inventory: actor.items
-            .filter(i =>
-              !excludedTypes.includes(i.type) &&
-              !adapter.isSpell(i) &&
-              i.name.toLowerCase() !== "unarmed strike"
-            )
-            .sort((a, b) => (a.type === b.type ? a.name.localeCompare(b.name) : a.type.localeCompare(b.type)))
-            .map(i => ({
-              name: i.name,
-              qty: adapter.getQty(i),
-              type: i.type
-            }))
+          inventory: buildInventoryForPayload(actor)
         };
 
         // Mask token in log
@@ -959,8 +974,10 @@ if (window.__DISCORD_SYNC_2_LOADED__[NS]) {
 
       // --- 6) Clear inventory (keep spells/features etc.) ---
       if (act === "clearinventory") {
-        const INV_TYPES = new Set(["weapon","equipment","consumable","tool","loot","backpack","container","ammo","ammunition"]);
-        const ids = actor.items.filter(i => INV_TYPES.has(i.type)).map(i => i.id);
+        const keep = getPhysicalTypeSet();
+        const ids = actor.items
+          .filter(i => keep.has(String(i.type || "").toLowerCase()))
+          .map(i => i.id);
         if (ids.length) {
           await actor.deleteEmbeddedDocuments("Item", ids);
           console.log(`Discord Sync 2 | Cleared ${ids.length} inventory item(s).`);
@@ -1070,25 +1087,13 @@ if (window.__DISCORD_SYNC_2_LOADED__[NS]) {
     if (!token || !actorId || !guildIdWorld || actor.id !== actorId) return;
 
     const adapter = A();
-    const excludedTypes = ["class", "race", "feat", "background", "subclass", "feature", "spell"];
 
     const payload = {
       token,
       guild_id: String(guildIdWorld),
       character: actor.name,
       gold: adapter.readGP(actor),
-      inventory: actor.items
-        .filter(i =>
-          !excludedTypes.includes(i.type) &&
-          !adapter.isSpell(i) &&
-          i.name.toLowerCase() !== "unarmed strike"
-        )
-        .sort((a, b) => (a.type === b.type ? a.name.localeCompare(b.name) : a.type.localeCompare(b.type)))
-        .map(i => ({
-          name: i.name,
-          qty: adapter.getQty(i),
-          type: i.type
-        }))
+      inventory: buildInventoryForPayload(actor)
     };
 
     // Mask token in log
