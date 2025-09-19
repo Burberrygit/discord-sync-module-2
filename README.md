@@ -1,4 +1,6 @@
-# Discord Sync Module 2 for The Golden Anvil Discord Bot. : https://discord.com/oauth2/authorize?client_id=1399873298463985664&permissions=2147609600&integration_type=0&scope=bot+applications.commands
+# Discord Sync Module 2 for The Golden Anvil Discord Bot
+
+Discord bot ( The Golden Avil ) : https://discord.com/oauth2/authorize?client_id=1399873298463985664&permissions=2147609600&integration_type=0&scope=bot+applications.commands
 
 DND5e, Pathfinder 1&2
 
