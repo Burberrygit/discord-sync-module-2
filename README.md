@@ -2,13 +2,14 @@
 
 Discord bot ( The Golden Avil ) : https://discord.com/oauth2/authorize?client_id=1399873298463985664&permissions=2147609600&integration_type=0&scope=bot+applications.commands
 
+Module Manifest:  `https://raw.githubusercontent.com/Burberrygit/discord-sync-module-2/main/module.json`
+
+---
+
 DND5e, Pathfinder 1&2
 
 This project links your Discord server with Foundry Virtual Tabletop so your players’ gold and inventory always stay in sync.  
 Players can buy, sell, gamble, or transfer gold right in Discord, and those changes automatically appear on their Foundry character sheets. Updates made in Foundry also sync back to Discord.
-
- Module Manifest:  
-`https://raw.githubusercontent.com/Burberrygit/discord-sync-module-2/main/module.json`
 
 ---
 
